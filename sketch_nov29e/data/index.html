@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automatic Supervising & Administering Plant System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #6ee7b7;
+            --teal: #14b8a6;
+            --teal-dark: #0d9488;
+            --orange: #f59e0b;
+            --orange-light: #fbbf24;
+            --bg-main: #e0e7ef;
+            --bg-sidebar: #34d2ba;
+            --bg-card: #ffffff;
+            --bg-panel: #1e6e60;
+            --text-primary: #1f2937;
+            --text-secondary: #4b5563;
+            --text-muted: #9ca3af;
+            --text-white: #ffffff;
+            --border: #d1d5db;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Left Panel */
+        .left-panel {
+            width: 420px;
+            background: var(--bg-panel);
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-icon {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        /* Moisture Gauges */
+        .moisture-gauges {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 0 auto 30px;
+            padding: 0 10px;
+        }
+
+        .gauge-item {
+            text-align: center;
+        }
+
+        .gauge-circle {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 180deg,
+                var(--orange) 0%,
+                var(--orange-light) 50%,
+                transparent 50%
+            );
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: 0 auto 10px;
+        }
+
+        .gauge-circle.low {
+            background: conic-gradient(
+                from 180deg,
+                #ef4444 0%,
+                #fca5a5 calc(var(--percent) * 3.6deg),
+                rgba(255, 255, 255, 0.15) calc(var(--percent) * 3.6deg)
+            );
+        }
+
+        .gauge-circle.medium {
+            background: conic-gradient(
+                from 180deg,
+                var(--orange) 0%,
+                var(--orange-light) calc(var(--percent) * 3.6deg),
+                rgba(255, 255, 255, 0.15) calc(var(--percent) * 3.6deg)
+            );
+        }
+
+        .gauge-circle.high {
+            background: conic-gradient(
+                from 180deg,
+                var(--primary) 0%,
+                var(--primary-light) calc(var(--percent) * 3.6deg),
+                rgba(255, 255, 255, 0.15) calc(var(--percent) * 3.6deg)
+            );
+        }
+
+        .gauge-inner {
+            width: 85px;
+            height: 85px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .gauge-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .gauge-unit {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .gauge-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 400px;
+        }
+
+        .search-box input {
+            border: none;
+            outline: none;
+            flex: 1;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .notification {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--teal));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Camera & Timeline Section */
+        .camera-section {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .camera-feed {
+            width: 100%;
+            height: auto;
+            max-height: 500px;
+            object-fit: cover;
+            background: #f3f4f6;
+        }
+
+        .timeline-section {
+            padding: 20px 30px;
+            background: linear-gradient(to right, #e0f2f1 0%, #b2dfdb 50%, #fff9c4 100%);
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .time-display {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .date-display {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .timeline-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .timeline-progress {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timeline-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--teal));
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .timeline-handle {
+            width: 16px;
+            height: 16px;
+            background: var(--orange);
+            border-radius: 50%;
+            position: absolute;
+            top: -5px;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+        }
+
+        /* Growth Phases */
+        .growth-phases {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .phase {
+            text-align: center;
+            position: relative;
+        }
+
+        .phase-icon {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 20px;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .phase.active .phase-icon {
+            background: var(--teal);
+            color: white;
+        }
+
+        .phase-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+        }
+
+        .phase-days {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .control-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: var(--text-primary);
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        /* Plant Grid */
+        .plant-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .plant-slot {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .plant-slot:hover {
+            border-color: var(--primary-light);
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .plant-slot.selected {
+            border-color: var(--primary-light);
+            background: rgba(16, 185, 129, 0.2);
+            box-shadow: 0 0 0 2px rgba(110, 231, 183, 0.3);
+        }
+
+        .plant-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 8px;
+        }
+
+        .plant-slot.selected .plant-number {
+            color: white;
+        }
+
+        .moisture-value {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 6px;
+        }
+
+        .moisture-bar {
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .moisture-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, var(--primary) 100%);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        /* Pump Controls */
+        .pump-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .pump-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .pump-btn:hover {
+            border-color: var(--primary-light);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .pump-btn.on {
+            background: linear-gradient(135deg, var(--primary), var(--teal));
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .pump-icon {
+            font-size: 28px;
+        }
+
+        /* Jog Control */
+        .jog-section {
+            margin-top: 30px;
+        }
+
+        .jog-header {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .jog-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 300px;
+        }
+
+        .jog-btn {
+            width: 100%;
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .jog-btn:hover {
+            border-color: var(--primary-light);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .jog-btn:active {
+            transform: scale(0.9);
+            background: var(--primary);
+            color: white;
+        }
+
+        .jog-btn.home {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .jog-btn.home:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+        }
+
+        /* System Buttons */
+        .system-btns {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .sys-btn {
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .sys-btn:hover {
+            border-color: var(--primary-light);
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Status Info */
+        .status-info {
+            margin-top: 30px;
+            background: var(--bg-main);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .status-row:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .status-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .status-value.on {
+            color: var(--primary);
+        }
+
+        .status-value.off {
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .left-panel {
+                width: 350px;
+            }
+        }
+
+        @media (max-width: 968px) {
+            .app-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                flex-direction: row;
+                height: 60px;
+                padding: 10px;
+            }
+
+            .nav-icons {
+                flex-direction: row;
+            }
+
+            .left-panel {
+                width: 100%;
+            }
+
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span class="panel-icon">🪴</span>
+                    Automatic Supervising & Administering Plant System
+                </div>
+                <div class="panel-icon" style="cursor: pointer;">⚙️</div>
+            </div>
+
+            <!-- Soil Moisture Gauges -->
+            <div class="moisture-gauges">
+                <div class="gauge-item">
+                    <div class="gauge-circle medium" id="gauge-0" style="--percent: 0">
+                        <div class="gauge-inner">
+                            <div class="gauge-value"><span id="sensor-0">0</span><span class="gauge-unit">%</span></div>
+                        </div>
+                    </div>
+                    <div class="gauge-label">Pot 1</div>
+                </div>
+                <div class="gauge-item">
+                    <div class="gauge-circle medium" id="gauge-1" style="--percent: 0">
+                        <div class="gauge-inner">
+                            <div class="gauge-value"><span id="sensor-1">0</span><span class="gauge-unit">%</span></div>
+                        </div>
+                    </div>
+                    <div class="gauge-label">Pot 2</div>
+                </div>
+                <div class="gauge-item">
+                    <div class="gauge-circle medium" id="gauge-2" style="--percent: 0">
+                        <div class="gauge-inner">
+                            <div class="gauge-value"><span id="sensor-2">0</span><span class="gauge-unit">%</span></div>
+                        </div>
+                    </div>
+                    <div class="gauge-label">Pot 3</div>
+                </div>
+            </div>
+
+            <!-- Plant Selection Grid -->
+            <div style="margin-top: 30px;">
+                <div style="font-size: 14px; font-weight: 600; margin-bottom: 15px; color: rgba(255,255,255,0.9);">
+                    🪴 Select Plant (3 Slots)
+                </div>
+                <div class="plant-grid" id="plantGrid" style="grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Pump Controls -->
+            <div style="margin-top: 20px;">
+                <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: rgba(255,255,255,0.9);">
+                    💧 Pump Control
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                    <button class="pump-btn" id="btnWater" style="padding: 15px; font-size: 13px;">
+                        <div class="pump-icon" style="font-size: 24px;">💧</div>
+                        <div>Water</div>
+                    </button>
+                    <button class="pump-btn" id="btnFert" style="padding: 15px; font-size: 13px;">
+                        <div class="pump-icon" style="font-size: 24px;">🧪</div>
+                        <div>Fertilizer</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Movement Control -->
+            <div style="margin-top: 20px;">
+                <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: rgba(255,255,255,0.9);">
+                    🕹️ Movement Control
+                </div>
+                <div class="jog-grid" style="max-width: 100%;">
+                    <button class="jog-btn" id="btnUpLeft">↖</button>
+                    <button class="jog-btn" id="btnUp">↑</button>
+                    <button class="jog-btn" id="btnUpRight">↗</button>
+                    <button class="jog-btn" id="btnLeft">←</button>
+                    <button class="jog-btn home" id="btnHome">HOME</button>
+                    <button class="jog-btn" id="btnRight">→</button>
+                    <button class="jog-btn" id="btnDownLeft">↙</button>
+                    <button class="jog-btn" id="btnDown">↓</button>
+                    <button class="jog-btn" id="btnDownRight">↘</button>
+                </div>
+            </div>
+
+            <!-- System Buttons -->
+            <div style="margin-top: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                    <button class="sys-btn" id="btnGoHome">🏠 Home</button>
+                    <button class="sys-btn" id="btnRecalibrate">🔄 Cal</button>
+                </div>
+            </div>
+
+            <!-- Auto Mode Button -->
+            <div style="margin-top: 20px;">
+                <button class="sys-btn" id="btnAutoMode" style="width: 100%; background: linear-gradient(135deg, #34d2ba, #1e6e60); color: white; border: none; padding: 16px; font-size: 15px;">
+                    🤖 Start Auto Mode
+                </button>
+                <div id="autoStatus" style="margin-top: 8px; font-size: 12px; color: rgba(255,255,255,0.7); text-align: center; min-height: 20px;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="search-box">
+                    <span>🔍</span>
+                    <input type="text" placeholder="Search...">
+                </div>
+                <div class="user-info">
+                    <div class="notification">📬</div>
+                    <div class="user-avatar">E</div>
+                </div>
+            </div>
+
+            <!-- Camera & Timeline -->
+            <div class="camera-section">
+                <img src="http://localhost:8000/video" alt="Farm Camera" class="camera-feed">
+            </div>
+
+            <!-- System Status Info -->
+            <div class="control-panel">
+                <div class="control-header">📊 System Status</div>
+                <div class="status-info" style="background: transparent; padding: 0;">
+                    <div class="status-row">
+                        <span class="status-label">Avg Moisture</span>
+                        <span class="status-value" id="avgMoisture">0%</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">Water Pump</span>
+                        <span class="status-value off" id="waterStatus">OFF</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">Fertilizer Pump</span>
+                        <span class="status-value off" id="fertStatus">OFF</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">System</span>
+                        <span class="status-value on" id="systemStatus">Running</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let selectedPlant = null;
+        const pumpStates = { water: false, fert: false };
+
+        // Initialize plant grid - ใช้ตำแหน่ง 2,5,8 แต่แสดงเป็น 1,2,3
+        function initPlantGrid() {
+            const grid = document.getElementById('plantGrid');
+            const positions = [1, 4, 7]; // ตำแหน่งจริง 2, 5, 8
+            const displayNumbers = [1, 2, 3]; // เลขที่แสดง
+            
+            positions.forEach((pos, idx) => {
+                const slot = document.createElement('div');
+                slot.className = 'plant-slot';
+                slot.setAttribute('data-position', pos);
+                slot.innerHTML = `
+                    <div class="plant-number">${displayNumbers[idx]}</div>
+                    <div class="moisture-value" id="moisture-${pos}">0%</div>
+                    <div class="moisture-bar">
+                        <div class="moisture-fill" id="moisture-bar-${pos}" style="width: 0%"></div>
+                    </div>
+                `;
+                slot.addEventListener('click', () => selectPlant(pos));
+                grid.appendChild(slot);
+            });
+        }
+
+        // Select plant
+        function selectPlant(index) {
+            selectedPlant = index;
+            document.querySelectorAll('.plant-slot').forEach((slot) => {
+                const pos = parseInt(slot.getAttribute('data-position'));
+                slot.classList.toggle('selected', pos === index);
+            });
+            
+            fetch(`${API_BASE}/tree?id=${index}`)
+                .then(r => r.json())
+                .then(data => console.log('Selected plant:', index + 1, data))
+                .catch(err => console.error('Select error:', err));
+        }
+
+        // Toggle pump
+        function togglePump(type) {
+            const newState = !pumpStates[type];
+            fetch(`${API_BASE}/pump?type=${type}&state=${newState ? 1 : 0}`)
+                .then(r => r.json())
+                .then(data => {
+                    pumpStates[type] = newState;
+                    updatePumpUI(type, newState);
+                    console.log(`Pump ${type}:`, newState ? 'ON' : 'OFF');
+                })
+                .catch(err => console.error('Pump error:', err));
+        }
+
+        // Update pump UI
+        function updatePumpUI(type, state) {
+            const btn = document.getElementById(type === 'water' ? 'btnWater' : 'btnFert');
+            const statusEl = document.getElementById(type === 'water' ? 'waterStatus' : 'fertStatus');
+            
+            if (state) {
+                btn.classList.add('on');
+                statusEl.textContent = 'ON';
+                statusEl.className = 'status-value on';
+            } else {
+                btn.classList.remove('on');
+                statusEl.textContent = 'OFF';
+                statusEl.className = 'status-value off';
+            }
+        }
+
+        // Jog movement with hold support
+        let jogInterval = null;
+        
+        function jogMove(x, y) {
+            console.log('🕹️ Sending jog command:', {x, y});
+            fetch(`${API_BASE}/move?x=${x}&y=${y}`)
+                .then(r => {
+                    console.log('Response status:', r.status);
+                    return r.json();
+                })
+                .then(data => {
+                    console.log('✅ Jog response:', data);
+                    if (data.error) {
+                        console.error('❌ Jog error from server:', data.error);
+                    }
+                })
+                .catch(err => console.error('❌ Jog network error:', err));
+        }
+        
+        function startJog(x, y) {
+            jogMove(x, y);
+            jogInterval = setInterval(() => jogMove(x, y), 200);
+        }
+        
+        function stopJog() {
+            if (jogInterval) {
+                clearInterval(jogInterval);
+                jogInterval = null;
+            }
+        }
+
+        // Auto Mode - ตรวจความชื้นและรดน้ำอัตโนมัติ
+        let autoModeRunning = false;
+        let autoModeInterval = null;
+        const MOISTURE_THRESHOLD = 30; // ความชื้นต่ำกว่า 30% จะรดน้ำ
+        const WATERING_TIME = 3000; // รดน้ำ 3 วินาที
+        
+        async function toggleAutoMode() {
+            const btnEl = document.getElementById('btnAutoMode');
+            const statusEl = document.getElementById('autoStatus');
+            
+            if (autoModeRunning) {
+                // Stop Auto Mode
+                autoModeRunning = false;
+                if (autoModeInterval) {
+                    clearInterval(autoModeInterval);
+                    autoModeInterval = null;
+                }
+                
+                btnEl.textContent = '🤖 Start Auto Mode';
+                btnEl.style.background = 'linear-gradient(135deg, #34d2ba, #1e6e60)';
+                statusEl.textContent = '✅ Auto Mode Stopped';
+                
+                // ปิดปั๊มทั้งหมด
+                await fetch(`${API_BASE}/pump?type=water&state=0`);
+                
+                // เปิดการควบคุมแมนนวล
+                enableManualControls(true);
+                
+                setTimeout(() => statusEl.textContent = '', 3000);
+            } else {
+                // Start Auto Mode
+                autoModeRunning = true;
+                btnEl.textContent = '⏸️ Stop Auto Mode';
+                btnEl.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+                statusEl.textContent = '🤖 Auto Mode Active';
+                
+                // ปิดการควบคุมแมนนวล
+                enableManualControls(false);
+                
+                // เริ่มวนลูปตรวจสอบความชื้น
+                autoModeInterval = setInterval(checkAndWater, 5000);
+                checkAndWater(); // เริ่มทันที
+            }
+        }
+        
+        async function checkAndWater() {
+            if (!autoModeRunning) return;
+            
+            try {
+                // ดึงข้อมูลความชื้น
+                const response = await fetch(`${API_BASE}/status`);
+                const data = await response.json();
+                const statusEl = document.getElementById('autoStatus');
+                
+                if (data.moisture && Array.isArray(data.moisture)) {
+                    const positions = [1, 4, 7]; // ตำแหน่ง 2, 5, 8
+                    
+                    for (let i = 0; i < 3; i++) {
+                        if (!autoModeRunning) break;
+                        
+                        const moisture = data.moisture[i];
+                        const pos = positions[i];
+                        const potNum = i + 1;
+                        
+                        if (moisture < MOISTURE_THRESHOLD) {
+                            statusEl.textContent = `💧 Watering Pot ${potNum} (${moisture}%)...`;
+                            
+                            // ไปยังกระถาง
+                            await fetch(`${API_BASE}/tree?id=${pos}`);
+                            await sleep(5000); // รอให้เคลื่อนที่เสร็จ
+                            
+                            if (!autoModeRunning) break;
+                            
+                            // เปิดปั๊มน้ำ
+                            await fetch(`${API_BASE}/pump?type=water&state=1`);
+                            await sleep(WATERING_TIME);
+                            
+                            // ปิดปั๊มน้ำ
+                            await fetch(`${API_BASE}/pump?type=water&state=0`);
+                            
+                            statusEl.textContent = `✅ Pot ${potNum} watered!`;
+                            await sleep(2000);
+                        }
+                    }
+                    
+                    if (autoModeRunning) {
+                        statusEl.textContent = '🤖 Auto Mode Active - Monitoring...';
+                    }
+                }
+            } catch (err) {
+                console.error('Auto mode error:', err);
+            }
+        }
+        
+        function enableManualControls(enabled) {
+            // ปิด/เปิดปุ่มต่างๆ
+            const controlButtons = [
+                'btnWater', 'btnFert', 'btnGoHome', 'btnRecalibrate',
+                'btnUp', 'btnDown', 'btnLeft', 'btnRight',
+                'btnUpLeft', 'btnUpRight', 'btnDownLeft', 'btnDownRight', 'btnHome'
+            ];
+            
+            controlButtons.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.disabled = !enabled;
+                    btn.style.opacity = enabled ? '1' : '0.5';
+                    btn.style.cursor = enabled ? 'pointer' : 'not-allowed';
+                }
+            });
+            
+            // ปิด/เปิด plant selection
+            document.querySelectorAll('.plant-slot').forEach(slot => {
+                slot.style.pointerEvents = enabled ? 'auto' : 'none';
+                slot.style.opacity = enabled ? '1' : '0.7';
+            });
+        }
+        
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Go home
+        function goHome() {
+            fetch(`${API_BASE}/home`)
+                .then(r => r.json())
+                .then(data => console.log('Home:', data))
+                .catch(err => console.error('Home error:', err));
+        }
+
+        // Recalibrate
+        function recalibrate() {
+            fetch(`${API_BASE}/recalibrate`)
+                .then(r => r.json())
+                .then(data => console.log('Recalibrate:', data))
+                .catch(err => console.error('Recalibrate error:', err));
+        }
+
+        // Update status
+        function updateStatus() {
+            fetch(`${API_BASE}/status`)
+                .then(r => r.json())
+                .then(data => {
+                    console.log('Status data:', data); // Debug
+                    
+                    // Update moisture levels
+                    if (data.moisture && Array.isArray(data.moisture)) {
+                        const positions = [1, 4, 7]; // ตำแหน่ง 2, 5, 8
+                        let sum = 0;
+                        
+                        // อัพเดทจากข้อมูล 3 ตัวแรก (index 0,1,2) ไปแสดงที่ตำแหน่ง 2,5,8
+                        data.moisture.forEach((val, idx) => {
+                            if (idx < 3) {
+                                const pos = positions[idx]; // ตำแหน่งในกริด
+                                
+                                // Update plant grid moisture
+                                const moistureEl = document.getElementById(`moisture-${pos}`);
+                                const barEl = document.getElementById(`moisture-bar-${pos}`);
+                                if (moistureEl) moistureEl.textContent = `${val}%`;
+                                if (barEl) barEl.style.width = `${val}%`;
+                                
+                                // Update gauge
+                                const sensorEl = document.getElementById(`sensor-${idx}`);
+                                const gaugeEl = document.getElementById(`gauge-${idx}`);
+                                
+                                if (sensorEl) sensorEl.textContent = val;
+                                if (gaugeEl) {
+                                    gaugeEl.style.setProperty('--percent', val);
+                                    
+                                    // Change color based on moisture level
+                                    gaugeEl.classList.remove('low', 'medium', 'high');
+                                    if (val < 30) {
+                                        gaugeEl.classList.add('low');
+                                    } else if (val < 60) {
+                                        gaugeEl.classList.add('medium');
+                                    } else {
+                                        gaugeEl.classList.add('high');
+                                    }
+                                }
+                                
+                                sum += val;
+                            }
+                        });
+                        
+                        const avg = Math.round(sum / Math.min(data.moisture.length, 3));
+                        document.getElementById('avgMoisture').textContent = `${avg}%`;
+                    }
+
+                    // Update pump states
+                    if (data.pWater !== undefined) {
+                        pumpStates.water = data.pWater;
+                        updatePumpUI('water', data.pWater);
+                    }
+                    if (data.pFert !== undefined) {
+                        pumpStates.fert = data.pFert;
+                        updatePumpUI('fert', data.pFert);
+                    }
+
+                    // Update system status
+                    const sysStatus = document.getElementById('systemStatus');
+                    if (data.run) {
+                        sysStatus.textContent = 'Running';
+                        sysStatus.className = 'status-value on';
+                    } else {
+                        sysStatus.textContent = 'Stopped';
+                        sysStatus.className = 'status-value off';
+                    }
+                })
+                .catch(err => {
+                    console.error('Status error:', err);
+                    document.getElementById('systemStatus').textContent = 'Disconnected';
+                    document.getElementById('systemStatus').className = 'status-value off';
+                });
+        }
+
+        // Event listeners
+        document.getElementById('btnWater').addEventListener('click', () => togglePump('water'));
+        document.getElementById('btnFert').addEventListener('click', () => togglePump('fert'));
+        document.getElementById('btnGoHome').addEventListener('click', goHome);
+        document.getElementById('btnRecalibrate').addEventListener('click', recalibrate);
+        document.getElementById('btnHome').addEventListener('click', goHome);
+        
+        // Jog buttons with mousedown/mouseup for hold
+        const jogButtons = [
+            { id: 'btnUp', x: 0, y: 100 },
+            { id: 'btnDown', x: 0, y: -100 },
+            { id: 'btnLeft', x: -100, y: 0 },
+            { id: 'btnRight', x: 100, y: 0 },
+            { id: 'btnUpLeft', x: -100, y: 100 },
+            { id: 'btnUpRight', x: 100, y: 100 },
+            { id: 'btnDownLeft', x: -100, y: -100 },
+            { id: 'btnDownRight', x: 100, y: -100 }
+        ];
+        
+        jogButtons.forEach(btn => {
+            const element = document.getElementById(btn.id);
+            element.addEventListener('mousedown', () => startJog(btn.x, btn.y));
+            element.addEventListener('mouseup', stopJog);
+            element.addEventListener('mouseleave', stopJog);
+            element.addEventListener('touchstart', (e) => { e.preventDefault(); startJog(btn.x, btn.y); });
+            element.addEventListener('touchend', (e) => { e.preventDefault(); stopJog(); });
+        });
+
+        // Auto Mode button
+        document.getElementById('btnAutoMode').addEventListener('click', toggleAutoMode);
+
+        // Initialize
+        initPlantGrid();
+        setInterval(updateStatus, 2000);
+        updateStatus();
+    </script>
+</body>
+</html>

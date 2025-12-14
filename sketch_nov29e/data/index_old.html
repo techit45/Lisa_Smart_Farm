@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>🌱 AgriTech Control System</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            display: flex; 
+            height: 100vh; 
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1419 100%);
+            overflow: hidden; 
+            font-family: 'Rajdhani', sans-serif;
+            color: #e0e0e0;
+            position: relative;
+        }
+        
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 157, 0.03) 2px, rgba(0, 255, 157, 0.03) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 255, 157, 0.03) 2px, rgba(0, 255, 157, 0.03) 4px);
+            pointer-events: none;
+            animation: gridMove 20s linear infinite;
+        }
+        
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(40px, 40px); }
+        }
+        
+        /* SIDEBARS */
+        .sidebar-left { 
+            width: 280px; 
+            background: rgba(15, 20, 35, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 2px solid rgba(0, 255, 157, 0.3);
+            display: flex; 
+            flex-direction: column;
+            box-shadow: 0 0 30px rgba(0, 255, 157, 0.2);
+            z-index: 10;
+        }
+        
+        .sidebar-right { 
+            width: 320px; 
+            background: rgba(15, 20, 35, 0.95);
+            backdrop-filter: blur(10px);
+            border-left: 2px solid rgba(0, 174, 255, 0.3);
+            display: flex; 
+            flex-direction: column; 
+            overflow-y: auto;
+            box-shadow: 0 0 30px rgba(0, 174, 255, 0.2);
+            z-index: 10;
+        }
+        
+        /* HEADERS */
+        .header-green { 
+            background: linear-gradient(135deg, #00ff9d 0%, #00b8ff 100%);
+            color: #0a0e27; 
+            padding: 20px; 
+            font-weight: 900;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 255, 157, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-green::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .header-red { 
+            background: linear-gradient(135deg, #ff0080 0%, #7928ca 100%);
+            color: white; 
+            padding: 20px; 
+            font-weight: 900;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(255, 0, 128, 0.4);
+        }
+
+        /* PLANT LIST */
+        .plant-list { 
+            overflow-y: auto; 
+            flex: 1; 
+            padding: 15px;
+        }
+        
+        .plant-item { 
+            background: linear-gradient(135deg, rgba(0, 255, 157, 0.1) 0%, rgba(0, 184, 255, 0.1) 100%);
+            margin-bottom: 12px; 
+            padding: 15px; 
+            border-radius: 12px;
+            border: 1px solid rgba(0, 255, 157, 0.3);
+            display: flex; 
+            align-items: center; 
+            gap: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .plant-item:hover {
+            transform: translateX(5px);
+            background: linear-gradient(135deg, rgba(0, 255, 157, 0.2) 0%, rgba(0, 184, 255, 0.2) 100%);
+            border-color: rgba(0, 255, 157, 0.6);
+            box-shadow: 0 5px 20px rgba(0, 255, 157, 0.3);
+        }
+        
+        .plant-img { 
+            width: 50px; 
+            height: 50px; 
+            background: linear-gradient(135deg, #00ff9d 0%, #00b8ff 100%);
+            border-radius: 50%;
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            font-size: 28px;
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+        }
+        
+        .plant-item div:last-child {
+            font-weight: 700;
+            font-size: 18px;
+            color: #00ff9d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* MAIN AREA */
+        .main-area { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* CAMERA VIEW */
+        .camera-container { 
+            background: linear-gradient(135deg, rgba(10, 14, 39, 0.9) 0%, rgba(26, 31, 58, 0.9) 100%);
+            padding: 20px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            border-bottom: 2px solid rgba(0, 255, 157, 0.3);
+            min-height: 250px;
+            position: relative;
+        }
+        
+        .camera-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00ff9d, #00b8ff, transparent);
+            animation: scanline 2s linear infinite;
+        }
+        
+        @keyframes scanline {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .camera-view { 
+            max-width: 100%; 
+            max-height: 320px; 
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 157, 0.5), 0 0 60px rgba(0, 184, 255, 0.3);
+            border: 3px solid rgba(0, 255, 157, 0.5);
+            background: #000;
+        }
+        
+        .camera-offline {
+            color: #00ff9d;
+            font-size: 20px;
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        /* FARM GRID */
+        .farm-area {
+            flex: 1;
+            background: radial-gradient(circle at 50% 50%, rgba(26, 31, 58, 0.8) 0%, rgba(10, 14, 39, 0.9) 100%);
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(26, 31, 58, 0.8) 0%, rgba(10, 14, 39, 0.9) 100%),
+                repeating-linear-gradient(0deg, transparent 0px, rgba(0, 255, 157, 0.05) 1px, transparent 2px, transparent 50px),
+                repeating-linear-gradient(90deg, transparent 0px, rgba(0, 255, 157, 0.05) 1px, transparent 2px, transparent 50px);
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            position: relative;
+        }
+        
+        .farm-area::after {
+            content: 'AGRITECH SYSTEM v2.0';
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            color: rgba(0, 255, 157, 0.3);
+            letter-spacing: 2px;
+        }
+        
+        .farm-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 140px); 
+            grid-template-rows: repeat(3, 140px); 
+            gap: 25px;
+        }
+        
+        /* PLOTS */
+        .plot { 
+            border: 2px dashed #cbd5e0;
+            border-radius: 16px;
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            position: relative;
+            background: #ffffff;
+            transition: all 0.2s ease;
+        }
+        
+        .plot.active-pot { 
+            background: #ffffff;
+            border: 2px solid #48bb78;
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.15);
+            cursor: pointer; 
+            flex-direction: column;
+        }
+        
+        .plot.active-pot:hover { 
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(72, 187, 120, 0.2);
+        }
+        
+        .selected { 
+            border-color: #38a169 !important;
+            box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.2) !important;
+        }
+        
+        .plot-number { 
+            position: absolute; 
+            top: 10px; 
+            left: 12px; 
+            font-weight: 600;
+            color: #a0aec0;
+            font-size: 14px;
+        }
+        
+        .plot.active-pot .plot-number { 
+            color: #48bb78;
+        }
+        
+        .plant-icon { 
+            font-size: 56px;
+        }
+        
+        /* MOISTURE BADGE */
+        .moist-badge { 
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white; 
+            padding: 5px 12px; 
+            border-radius: 16px;
+            font-size: 13px; 
+            margin-top: 8px; 
+            font-weight: 600;
+        }
+
+        /* CONTROLS */
+        .control-panel { 
+            padding: 20px;
+        }
+        
+        .btn-full { 
+            width: 100%; 
+            padding: 12px; 
+            border: none; 
+            border-radius: 10px;
+            cursor: pointer; 
+            font-weight: 600;
+            margin-bottom: 10px; 
+            color: white; 
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+        
+        .btn-water { 
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            box-shadow: 0 2px 8px rgba(66, 153, 225, 0.3);
+        }
+        
+        .btn-water:hover {
+            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .btn-water.on { 
+            background: linear-gradient(135deg, #2b6cb0 0%, #2c5282 100%);
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.3);
+        }
+        
+        .btn-fert { 
+            background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
+            box-shadow: 0 2px 8px rgba(159, 122, 234, 0.3);
+        }
+        
+        .btn-fert:hover {
+            box-shadow: 0 4px 12px rgba(159, 122, 234, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .btn-fert.on { 
+            background: linear-gradient(135deg, #6b46c1 0%, #553c9a 100%);
+            box-shadow: 0 0 0 3px rgba(159, 122, 234, 0.3);
+        }
+        
+        .btn-home { 
+            background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+            box-shadow: 0 2px 8px rgba(252, 129, 129, 0.3);
+        }
+        
+        .btn-home:hover {
+            box-shadow: 0 4px 12px rgba(252, 129, 129, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .btn-calib { 
+            background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+            box-shadow: 0 2px 8px rgba(246, 173, 85, 0.3);
+        }
+        
+        .btn-calib:hover {
+            box-shadow: 0 4px 12px rgba(246, 173, 85, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* JOG */
+        .jog-grid { 
+            display: grid; 
+            grid-template: 
+                "ul u ur" auto
+                "l home r" auto 
+                "dl d dr" auto / 1fr 1fr 1fr;
+            gap: 8px; 
+            max-width: 180px;
+            margin: 20px auto;
+        }
+        
+        .jog-btn { 
+            padding: 12px; 
+            background: #edf2f7;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #4a5568;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        
+        .jog-btn:hover {
+            background: #e2e8f0;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+
+        @media (max-width: 768px) { 
+            body { 
+                flex-direction: column; 
+                overflow: auto;
+            } 
+            
+            .sidebar-left, 
+            .sidebar-right { 
+                width: 100%; 
+                border-right: none;
+                border-left: none;
+                border-bottom: 2px solid rgba(0, 255, 157, 0.2);
+            }
+            
+            .main-area {
+                width: 100%;
+            }
+            
+            .farm-grid { 
+                grid-template-columns: repeat(3, 90px); 
+                grid-template-rows: repeat(3, 90px); 
+                padding: 20px;
+            } 
+            
+            .camera-view { 
+                max-height: 200px;
+            }
+            
+            .plot {
+                min-height: 80px;
+            }
+            
+            .jog-grid {
+                max-width: 180px;
+            }
+            
+            #cameraFeed {
+                max-width: 100%;
+                max-height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar-left">
+        <div class="header-green">Choose a Species</div>
+        <div class="plant-list">
+            <div class="plant-item"><div class="plant-img">🥬</div><div>Lettuce</div></div>
+            <div class="plant-item"><div class="plant-img">🍅</div><div>Tomato</div></div>
+            <div class="plant-item"><div class="plant-img">🥕</div><div>Carrot</div></div>
+        </div>
+    </div>
+
+    <div class="main-area">
+        <!-- Camera Section -->
+        <div class="camera-container">
+            <img id="camera-stream" class="camera-view" src="/video" alt="Camera Feed" 
+                 onerror="this.style.display='none'; document.getElementById('camera-error').style.display='block';">
+            <div id="camera-error" class="camera-offline" style="display:none;">
+                📷 Camera Offline<br>
+                <small style="font-size:12px; margin-top:10px; display:block;">ตรวจสอบ URL กล้อง</small>
+            </div>
+        </div>
+
+        <!-- Farm Grid Section -->
+        <div class="farm-area">
+            <div class="farm-grid">
+                <div class="plot"><span class="plot-number">1</span></div>
+                
+                <div class="plot active-pot" id="pot_2" onclick="goToTree(2)">
+                    <span class="plot-number">2</span>
+                    <div class="plant-icon">🥬</div>
+                    <div class="moist-badge" id="m_2">--%</div>
+                </div>
+                
+                <div class="plot"><span class="plot-number">3</span></div>
+                <div class="plot"><span class="plot-number">4</span></div>
+                
+                <div class="plot active-pot" id="pot_5" onclick="goToTree(5)">
+                    <span class="plot-number">5</span>
+                    <div class="plant-icon">🍅</div>
+                    <div class="moist-badge" id="m_5">--%</div>
+                </div>
+                
+                <div class="plot"><span class="plot-number">6</span></div>
+                <div class="plot"><span class="plot-number">7</span></div>
+                
+                <div class="plot active-pot" id="pot_8" onclick="goToTree(8)">
+                    <span class="plot-number">8</span>
+                    <div class="plant-icon">🥕</div>
+                    <div class="moist-badge" id="m_8">--%</div>
+                </div>
+                
+                <div class="plot"><span class="plot-number">9</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-right">
+        <div class="header-red">Controls & Pumps</div>
+        <div class="control-panel">
+            <div id="status-text" style="text-align:center; margin-bottom:15px; color:green; font-weight:bold;">Ready</div>
+
+            <button class="btn-full btn-water" id="btn-water" onclick="togglePump('water')">💧 WATER PUMP</button>
+            <button class="btn-full btn-fert" id="btn-fert" onclick="togglePump('fert')">💊 FERTILIZER</button>
+
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+            
+            <button class="btn-full btn-home" onclick="fetch('/home')">🏠 HOME</button>
+            <button class="btn-full btn-calib" onclick="if(confirm('Recalibrate?')) fetch('/recalibrate')">📏 CALIBRATE</button>
+
+            <div class="jog-grid">
+                <div></div><button class="jog-btn" onclick="fetch('/move?revsX=0&revsY=0.1')">▲</button><div></div>
+                <button class="jog-btn" onclick="fetch('/move?revsX=-0.1&revsY=0')">◀</button>
+                <button class="jog-btn" style="background:#ccc;">●</button>
+                <button class="jog-btn" onclick="fetch('/move?revsX=0.1&revsY=0')">▶</button>
+                <div></div><button class="jog-btn" onclick="fetch('/move?revsX=0&revsY=-0.1')">▼</button><div></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function goToTree(id) {
+            document.querySelectorAll('.plot').forEach(el => el.classList.remove('selected'));
+            document.getElementById('pot_' + id).classList.add('selected');
+            document.getElementById('status-text').innerText = "Moving to Pot " + id + "...";
+            fetch('/tree?id=' + id);
+        }
+
+        function togglePump(type) {
+            fetch('/pump?type=' + type);
+        }
+
+        function updateStatus() {
+            fetch('/status')
+                .then(r => r.json())
+                .then(data => {
+                    // Update Text Status
+                    const st = document.getElementById('status-text');
+                    if(data.run) { st.innerText = "RUNNING..."; st.style.color = "orange"; }
+                    else { st.innerText = "READY"; st.style.color = "green"; }
+
+                    // Update Moisture Badges
+                    document.getElementById('m_2').innerText = data.soil[0] + "%";
+                    document.getElementById('m_5').innerText = data.soil[1] + "%";
+                    document.getElementById('m_8').innerText = data.soil[2] + "%";
+
+                    // Update Pump Buttons Style
+                    const btnW = document.getElementById('btn-water');
+                    if(data.pWater) { btnW.classList.add('on'); btnW.innerText = "💧 WATER: ON"; }
+                    else { btnW.classList.remove('on'); btnW.innerText = "💧 WATER: OFF"; }
+
+                    const btnF = document.getElementById('btn-fert');
+                    if(data.pFert) { btnF.classList.add('on'); btnF.innerText = "💊 FERT: ON"; }
+                    else { btnF.classList.remove('on'); btnF.innerText = "💊 FERT: OFF"; }
+                })
+                .catch(err => console.error('Status update failed:', err));
+        }
+        
+        setInterval(updateStatus, 1000);
+
+        // Check camera status
+        setInterval(() => {
+            const img = document.getElementById('camera-stream');
+            const err = document.getElementById('camera-error');
+            if(img.complete && img.naturalHeight !== 0) {
+                img.style.display = 'block';
+                err.style.display = 'none';
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
